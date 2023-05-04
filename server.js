@@ -6,7 +6,7 @@ const bodyParser = require("body-parser");
 const userRoutes = require("./routes/user.route");
 const studentRoutes = require("./routes/student.route");
 const teacherRoutes = require("./routes/teacher.route");
-const booksRoutes = require("./controllers/books.controller");
+const booksRoutes = require("./routes/book.route");
 
 const app = express();
 
