@@ -1,8 +1,8 @@
 const express = require("express");
 const router = express.Router();
+const signin = require("../middleware/is-signin");
 
-// import controllers
 const { getTeachers } = require("../controllers/teacher.controller");
 
-router.get("/", getTeachers);
+router.get("/", signin, getTeachers);
 module.exports = router;
