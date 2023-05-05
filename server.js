@@ -3,12 +3,7 @@ const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
 const speakeasy = require("speakeasy");
 const nodemailer = require("nodemailer");
-
-// App routes
-const userRoutes = require("./routes/user.route");
-const studentRoutes = require("./routes/student.route");
-const teacherRoutes = require("./routes/teacher.route");
-const booksRoutes = require("./routes/book.route");
+const router = require("./routes/index");
 
 const app = express();
 
@@ -18,12 +13,8 @@ app.use(bodyParser.urlencoded({ extended: false }));
 
 // parse application/json
 app.use(bodyParser.json());
-
+app.use("/v1", router);
 // Handle all user routes
-app.use("/v1/users", userRoutes);
-app.use("/v1/students", studentRoutes);
-app.use("/v1/teachers", teacherRoutes);
-app.use("/v1/books", booksRoutes);
 
 app.post("/login", (req, res) => {
   const email = req.body.email;
