@@ -254,3 +254,41 @@ exports.signin1 = (req, res, next) => {
       next(error);
     });
 };
+
+exports.changePassword = async (req, res, next) => {
+  const { currentPassword, newPassword } = req.body;
+  let loadedUser;
+  User.findById(req.userId)
+    .then((user) => {
+      if (!user) {
+        const error = new Error("You can not change the password!!!");
+        error.statusCode = 500;
+        throw error;
+      }
+      loadedUser = user;
+      return bcrypt.compare(currentPassword, user.password);
+    })
+    .then((isMatched) => {
+      if (!isMatched) {
+        const error = new Error("password do not match!!!");
+        error.statusCode = 500;
+        throw error;
+      }
+      return bcrypt.hash(newPassword, 12);
+    })
+    .then((hashedPass) => {
+      loadedUser.password = hashedPass;
+      return loadedUser.save();
+    })
+    .then((userSaved) => {
+      res.status(200).json({
+        message: "Password updated successfully",
+      });
+    })
+    .catch((error) => {
+      if (!error.statusCode) {
+        error.statusCode = 500;
+      }
+      next(error);
+    });
+};
