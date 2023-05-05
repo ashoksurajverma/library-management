@@ -1,6 +1,6 @@
 const bcrypt = require("bcryptjs");
 const User = require("../models/user.model");
-// const Post = require("../model/post.model");
+const jwt = require("jsonwebtoken");
 
 exports.getUser = (req, res, next) => {
   try {
@@ -42,8 +42,6 @@ exports.createUser = (req, res, next) => {
 
 exports.signup = (req, res, next) => {
   const { firstName, lastName, role, password, email } = req.body;
-
-  console.log("================>>>>>", firstName, lastName, role, password);
   User.find({ email: email })
     .then((userExits) => {
       if (userExits.length) {
@@ -73,6 +71,89 @@ exports.signup = (req, res, next) => {
             }
             next(next);
           });
+      });
+    })
+    .catch((error) => {
+      if (!error.statusCode) {
+        error.statusCode = 500;
+      }
+      next(error);
+    });
+};
+
+exports.signIn = (req, res, next) => {
+  const { email, password } = req.body;
+  let loadedUser;
+  User.findOne({ email: email })
+    .then((user) => {
+      loadedUser = user;
+      if (!user) {
+        const error = new Error("User does not exits");
+        error.statusCode = 404;
+        throw error;
+      }
+      return bcrypt.compare(password, user.password);
+    })
+    .then((isEqual) => {
+      if (!isEqual) {
+        const error = new Error("Password is incorrect");
+        error.statusCode = 401;
+        throw error;
+      }
+      const token = jwt.sign(
+        {
+          email: email,
+          userId: loadedUser._id.toString(),
+        },
+        "mypassword",
+        { expiresIn: "3h" }
+      );
+      res.status(200).json({
+        token,
+        userId: loadedUser._id,
+        email,
+        message: "You have successfully logged in",
+      });
+    })
+    .catch((error) => {
+      if (!error.statusCode) {
+        error.statusCode = 500;
+      }
+      next(error);
+    });
+};
+
+exports.signin1 = (req, res, next) => {
+  const { email, password } = req.body;
+  let loadedUser;
+  User.findOne({ email: email })
+    .then((user) => {
+      loadedUser = user;
+      if (!user) {
+        const error = new Error("User does not exits");
+        error.statusCode = 404;
+        throw error;
+      }
+      return bcrypt.compare(password, user.password);
+    })
+    .then((isPsdEqual) => {
+      if (!isPsdEqual) {
+        const error = new Error("Password does not match");
+        error.statusCode = 404;
+        throw error;
+      }
+      const token = jwt.sign(
+        {
+          email,
+          userId: loadedUser._id.toString(),
+        },
+        "mypassword",
+        { expiresIn: "3h" }
+      );
+      res.status(200).json({
+        token,
+        email,
+        userId: loadedUser._id,
       });
     })
     .catch((error) => {
