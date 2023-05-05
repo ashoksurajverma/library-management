@@ -3,6 +3,8 @@ const User = require("../models/user.model");
 const jwt = require("jsonwebtoken");
 const speakeasy = require("speakeasy");
 const nodemailer = require("nodemailer");
+const uuid = require("uuid");
+const ResetToken = require("../models/reset-token.model");
 
 exports.getUser = (req, res, next) => {
   try {
@@ -291,4 +293,81 @@ exports.changePassword = async (req, res, next) => {
       }
       next(error);
     });
+};
+
+exports.forgotPassword = (req, res, next) => {
+  const { email } = req.body;
+  const token = uuid.v4();
+  const resetToken = new ResetToken({
+    email: email,
+    token: token,
+  });
+
+  resetToken
+    .save()
+    .then((savedToken) => {
+      const transporter = nodemailer.createTransport({
+        service: "gmail",
+        auth: {
+          user: "sverma@technomatz.com",
+          pass: "kanipura@@@477116#gmail",
+        },
+      });
+      const resetUrl = `https://example.com/reset-password?token=${token}`;
+
+      const mailOptions = {
+        from: "sverma@technomatz.com",
+        to: email,
+        subject: "Reset your password",
+        html: `Click <a href="${resetUrl}">here</a> to reset your password. token: ${token}`,
+      };
+      transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+          res.status(500).json({
+            error: true,
+            message: error.message,
+          });
+        } else {
+          res.status(200).json({
+            message: "Password reset link has been sent to your gamil address",
+          });
+        }
+      });
+    })
+    .catch((error) => {
+      if (!error.statusCode) {
+        error.statusCode = 500;
+      }
+      next(next);
+    });
+};
+
+exports.resetPassword = async (req, res, next) => {
+  const { token, password } = req.body;
+  const findToken = await ResetToken.findOne({ token: token });
+  if (!findToken) {
+    res.status(404).json({
+      message: "Token is invalid, that you provide",
+    });
+  }
+  const email = findToken.email;
+  const user = await User.findOne({ email: email });
+  const hashedPass = await bcrypt.hash(password, 12);
+  user.password = hashedPass;
+  user
+    .save()
+    .then((updatedUser) => {
+      res.status(200).json({ message: "Your password has been updated !!!" });
+    })
+    .catch((error) => {
+      if (!error.statusCode) {
+        error.statusCode = 500;
+      }
+      next(error);
+    });
+  // Verify the token
+  // retrieve  the users email & verify it.
+  // hash new password
+  // update the user password
+  // return response
 };
