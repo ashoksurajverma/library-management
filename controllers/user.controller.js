@@ -1,6 +1,8 @@
 const bcrypt = require("bcryptjs");
 const User = require("../models/user.model");
 const jwt = require("jsonwebtoken");
+const speakeasy = require("speakeasy");
+const nodemailer = require("nodemailer");
 
 exports.getUser = (req, res, next) => {
   try {
@@ -60,9 +62,38 @@ exports.signup = (req, res, next) => {
         user
           .save()
           .then((result) => {
-            console.log(result);
-            res.status(200).json({
-              data: result,
+            const secret = speakeasy.generateSecret({ length: 20 });
+            const secretKey = secret.base32;
+
+            const otp = speakeasy.totp({
+              secret: secret.base32,
+              encoding: "base32",
+            });
+            const transporter = nodemailer.createTransport({
+              service: "gmail",
+              auth: {
+                user: "sverma@technomatz.com",
+                pass: "kanipura@@@477116#gmail",
+              },
+            });
+            const mailOptions = {
+              from: "sverma@technomatz.com",
+              to: email,
+              subject: "OTP Login & Screate",
+              text: `Your OTP is ${otp} and ${secretKey}`,
+            };
+            transporter.sendMail(mailOptions, (error, info) => {
+              if (error) {
+                console.log(error);
+                res.status(500).json({
+                  error: true,
+                  message: error.message,
+                });
+              } else {
+                res.status(200).json({
+                  message: `Please verify your email first, before login. OTP has been sent to you email: ${email}`,
+                });
+              }
             });
           })
           .catch((error) => {
@@ -71,6 +102,66 @@ exports.signup = (req, res, next) => {
             }
             next(next);
           });
+      });
+    })
+    .catch((error) => {
+      if (!error.statusCode) {
+        error.statusCode = 500;
+      }
+      next(error);
+    });
+};
+exports.signupverify = (req, res, next) => {
+  const { email } = req.body;
+  User.findOne({ email: email })
+    .then((user) => {
+      // If user not found
+      if (!user) {
+        const error = new Error("User not found!!!");
+        error.statusCode = 404;
+        throw error;
+      }
+
+      // if we got a user, then we'll follow these steps
+      const otp = req.body.otp;
+      const secret = req.body.secret;
+      const verified = speakeasy.totp.verify({
+        secret: secret,
+        encoding: "base32",
+        token: otp,
+        window: 5,
+      });
+
+      if (verified) {
+        user.isVerified = true;
+        return user.save();
+      } else {
+        res.status(304).json({
+          message: "OTP is not valid",
+        });
+      }
+    })
+    .then((savedUser) => {
+      if (!savedUser) {
+        const error = new Error("Invalid OTP");
+        error.statusCode = 500;
+        throw error;
+      }
+
+      const token = jwt.sign(
+        {
+          email: email,
+          userId: savedUser._id.toString(),
+        },
+        "mypassword",
+        { expiresIn: "3h" }
+      );
+
+      res.status(200).json({
+        message: "Email verified successfully, Now you can login",
+        token,
+        email,
+        userId: savedUser._id,
       });
     })
     .catch((error) => {
