@@ -8,7 +8,7 @@ const ResetToken = require("../models/reset-token.model");
 
 exports.getUser = (req, res, next) => {
   try {
-    User.find().then((result) => {
+    User.find({ isVerified: true }).then((result) => {
       res.status(200).json({
         message: "success 121",
         result,
