@@ -1,8 +1,6 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
-const speakeasy = require("speakeasy");
-const nodemailer = require("nodemailer");
 const router = require("./routes/index");
 
 const app = express();
@@ -16,65 +14,15 @@ app.use(bodyParser.json());
 app.use("/v1", router);
 // Handle all user routes
 
-app.post("/login", (req, res) => {
-  const email = req.body.email;
-  const secret = speakeasy.generateSecret({ length: 20 });
-  const secretKey = secret.base32;
-
-  const otp = speakeasy.totp({
-    secret: secret.base32,
-    encoding: "base32",
-  });
-  const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-      user: "sverma@technomatz.com",
-      pass: "kanipura@@@477116#gmail",
-    },
-  });
-  const mailOptions = {
-    from: "sverma@technomatz.com",
-    to: email,
-    subject: "OTP Login & Screate",
-    text: `Your OTP is ${otp} and ${secretKey}`,
-  };
-  transporter.sendMail(mailOptions, (error, info) => {
-    if (error) {
-      console.log(error);
-      res.status(500).json({
-        error: true,
-        message: error.message,
-      });
-    } else {
-      res.status(200).json({
-        message: `OTP has been sent to you email: ${email}`,
-      });
-    }
-  });
-});
-
-app.post("/login/verify", (req, res) => {
-  const otp = req.body.otp;
-  const secret = req.body.secret;
-  const verified = speakeasy.totp.verify({
-    secret: secret,
-    encoding: "base32",
-    token: otp,
-    window: 1,
-  });
-  if (verified) {
-    res.send("OTP verified");
-  } else {
-    res.send("Invalid OTP");
-  }
-});
-
+// Handle all globals errors
 app.use((error, req, res, next) => {
   res.status(500).json({
     error: true,
     message: error.message,
+    Hi: "fgdfsg",
   });
 });
+
 mongoose
   .connect("mongodb://127.0.0.1:27017/libray-management")
   .then(() => {
