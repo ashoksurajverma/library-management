@@ -18,11 +18,6 @@ exports.getAllBooks = (req, res, next) => {
 };
 
 exports.createBook = (req, res, next) => {
-  // "bookId": "dfsdfsdf",
-  // "publisher": "tech",
-  // "subject": "Programming c",
-  // "authorName": "Suraj",
-  // "writer": "6458d45814fc01af3be68d60"
   const book = new Book({
     bookId: req.body.bookId,
     publisher: req.body.publisher,
@@ -54,5 +49,28 @@ exports.createBook = (req, res, next) => {
         error.statusCode = 500;
       }
       next(200);
+    });
+};
+
+exports.findBookById = (req, res, next) => {
+  const { bookId } = req.params;
+
+  Book.findById(bookId)
+    .then((book) => {
+      if (!book) {
+        const error = new Error("Not found this book");
+        error.statusCode = 404;
+        throw error;
+      }
+      res.status(200).json({
+        success: true,
+        book,
+      });
+    })
+    .catch((error) => {
+      if (!error.statusCode) {
+        error.statusCode = 500;
+      }
+      next(error);
     });
 };

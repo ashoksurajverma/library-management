@@ -1,11 +1,12 @@
 const Author = require("../models/author.model");
+const { getSingleAuthor } = require("../services/author.service");
 
 exports.getAllAuthors = (req, res, next) => {
   Author.find()
     .then((authors) => {
       res.status(200).json({
         success: true,
-        authors: authors,
+        authors: getSingleAuthor(authors),
         count: authors.length,
       });
     })
