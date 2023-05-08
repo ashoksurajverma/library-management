@@ -1,4 +1,5 @@
 const Book = require("../models/book.model");
+const Author = require("../models/author.model");
 
 exports.getAllBooks = (req, res, next) => {
   Book.find()
@@ -17,19 +18,35 @@ exports.getAllBooks = (req, res, next) => {
 };
 
 exports.createBook = (req, res, next) => {
+  // "bookId": "dfsdfsdf",
+  // "publisher": "tech",
+  // "subject": "Programming c",
+  // "authorName": "Suraj",
+  // "writer": "6458d45814fc01af3be68d60"
   const book = new Book({
     bookId: req.body.bookId,
-    name: req.body.name,
-    author: req.body.author,
+    publisher: req.body.publisher,
     subject: req.body.subject,
+    authorName: req.body.authorName,
+    writer: req.body.writer,
   });
+  let savedBook;
   book
     .save()
-    .then((result) => {
+    .then(async (result) => {
+      savedBook = result;
+      return Author.findById(req.body.writer);
+    })
+    .then((author) => {
+      author.books.push(savedBook);
+      return author.save();
+    })
+    .then((author) => {
       res.status(201).json({
         message: "Book is created",
         success: true,
-        result,
+        result: savedBook,
+        author: author,
       });
     })
     .catch((error) => {
