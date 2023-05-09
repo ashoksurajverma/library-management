@@ -5,6 +5,7 @@ const speakeasy = require("speakeasy");
 const nodemailer = require("nodemailer");
 const uuid = require("uuid");
 const ResetToken = require("../models/reset-token.model");
+const Book = require("../models/book.model");
 
 exports.getUser = (req, res, next) => {
   try {
@@ -370,4 +371,21 @@ exports.resetPassword = async (req, res, next) => {
   // hash new password
   // update the user password
   // return response
+};
+
+exports.fetchUserAssignedBooks = (req, res, next) => {
+  const { userId } = req.query;
+  Book.find({ issuedTo: userId })
+    .then((books) => {
+      res.status(200).json({
+        success: true,
+        books,
+      });
+    })
+    .catch((error) => {
+      if (!error.statusCode) {
+        error.statusCode = 500;
+      }
+      next(error);
+    });
 };

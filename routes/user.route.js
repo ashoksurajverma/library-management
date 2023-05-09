@@ -4,6 +4,7 @@ const router = express.Router();
 const signin = require("../middleware/is-signin");
 
 router.get("/", signin, controller.getUser);
+router.get("/fetch-user-books", controller.fetchUserAssignedBooks);
 router.post("/signup", controller.signup);
 router.post("/signup-verify", controller.signupverify);
 router.post("/signin", controller.signin1);
