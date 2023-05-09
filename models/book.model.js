@@ -25,6 +25,10 @@ const bookSchema = new Schema(
       ref: "Author",
       require: true,
     },
+    issued: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true }
 );

@@ -74,3 +74,19 @@ exports.findBookById = (req, res, next) => {
       next(error);
     });
 };
+
+exports.getOnlyNonIssuedBook = (req, res, next) => {
+  Book.find({ issued: true })
+    .then((books) => {
+      res.status(200).json({
+        success: true,
+        books,
+      });
+    })
+    .catch((error) => {
+      if (!error.statusCode) {
+        error.statusCode = 500;
+      }
+      next(error);
+    });
+};
