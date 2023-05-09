@@ -29,6 +29,10 @@ const bookSchema = new Schema(
       type: Boolean,
       default: false,
     },
+    issuedTo: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+    },
   },
   { timestamps: true }
 );
