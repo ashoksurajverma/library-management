@@ -142,3 +142,42 @@ exports.assignBookToUser = (req, res, next) => {
       next(error);
     });
 };
+
+exports.returnBook = (req, res, next) => {
+  const { bookId, userId } = req.body;
+  Book.findById(bookId)
+    .then((book) => {
+      book.issued = false;
+      book.issuedTo = "616c618f476aaeb87d23f387";
+      return book.save();
+    })
+    .then((result) => {
+      return User.findById(userId);
+    })
+    .then((user) => {
+      const books = [];
+      user.books.map((bId) => {
+        if (bookId.toString() === bId.toString()) {
+          console.log(bId);
+        } else {
+          books.push(bId);
+        }
+        // if (bookId.toString() !== bId.toString()) {
+        // }
+      });
+      user.books = books;
+      return user.save();
+    })
+    .then(() => {
+      res.status(200).json({
+        success: true,
+        message: "You have return th book",
+      });
+    })
+    .catch((error) => {
+      if (!error.statusCode) {
+        error.statusCode = 500;
+      }
+      next(error);
+    });
+};
