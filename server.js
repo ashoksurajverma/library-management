@@ -34,5 +34,5 @@ mongoose
     });
   })
   .catch((error) => {
-    console.log("Error while connecting to DB");
+    console.log("Error while connecting to DB", error);
   });
