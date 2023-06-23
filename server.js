@@ -23,7 +23,10 @@ app.use((error, req, res, next) => {
 });
 
 mongoose
-  .connect("mongodb://127.0.0.1:27017/libray-management")
+  .connect("mongodb+srv://sverma:Suraj@12345@cluster0.ih9h4el.mongodb.net/", {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
   .then(() => {
     console.log("Connected to the DB");
     app.listen(PORT, () => {
