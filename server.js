@@ -23,7 +23,7 @@ app.use((error, req, res, next) => {
 });
 
 mongoose
-  .connect("mongodb+srv://sverma:Suraj@12345@cluster0.ih9h4el.mongodb.net/", {
+  .connect("mongodb+srv://sverma:Suraj12345@cluster0.ih9h4el.mongodb.net/", {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   })
